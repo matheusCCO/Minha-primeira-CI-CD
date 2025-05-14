@@ -8,10 +8,10 @@ pipeline{
         }
         stage('Informações do sistema'){
             steps{
-                echo "Building ${env.JOB_NAME}"
+                echo "O nemo da pipeline é ${env.JOB_NAME}"
+                echo "Esta é a execução: #${env.BUILD_NUMBER}"
+                echo "Local: #${env.BUILD_NUMBER}"
             }
-
         }
-
     }
 }
