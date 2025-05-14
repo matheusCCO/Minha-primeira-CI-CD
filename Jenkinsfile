@@ -16,5 +16,10 @@ pipeline{
                 echo "Local: #${env.WORKSPACE}"
             }
         }
+        stage('teste'){
+            steps{
+                echo "teste"
+            }
+        }
     }
 }
