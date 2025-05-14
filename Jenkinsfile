@@ -1,114 +1,91 @@
 pipeline {
-    agent any // Define o agente para executar o pipeline
+    agent any
 
     environment {
-        // Definição de variáveis de ambiente
-        MY_ENV_VAR = 'HelloWorld'
-    }
-
-    options {
-        // Configurações de opções
-        timeout(time: 30, unit: 'MINUTES') // Timeout de 30 minutos
-        timestamps() // Adiciona timestamps aos logs
+        // Variáveis de ambiente importantes para os testes
+        TEST_ENV = 'staging'
+        REPORT_DIR = 'test-reports'
     }
 
     parameters {
-        // Definição de parâmetros para o pipeline
-        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Nome do branch')
-        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Executar testes?')
-    }
-
-    triggers {
-        // Configuração de gatilhos
-        cron('H 4 * * 1-5') // Executa de segunda a sexta às 4h
+        // Parâmetros para personalizar os testes
+        booleanParam(name: 'RUN_INTEGRATION_TESTS', defaultValue: true, description: 'Executar testes de integração?')
+        string(name: 'TEST_BRANCH', defaultValue: 'main', description: 'Branch para testar')
     }
 
     stages {
         stage('Preparation') {
             steps {
-                script {
-                    echo "Pipeline iniciado com a variável: ${MY_ENV_VAR}"
-                }
+                echo 'Preparando ambiente de teste...'
+                echo "Executando testes no ambiente: ${TEST_ENV}"
             }
         }
 
         stage('Checkout') {
             steps {
-                checkout scm // Faz o checkout do código-fonte
+                // Checkout do branch especificado
+                checkout scm
+                echo "Branch em teste: ${params.TEST_BRANCH}"
             }
         }
 
         stage('Build') {
             steps {
-                echo 'Construindo o projeto...'
+                echo 'Construindo o projeto para os testes...'
+                sh 'mvn clean install' // Comando para build (usando Maven como exemplo)
             }
         }
 
-        stage('Test') {
+        stage('Unit Tests') {
+            steps {
+                echo 'Executando testes unitários...'
+                sh 'mvn test -Dtest=Unit*'
+            }
+        }
+
+        stage('Integration Tests') {
             when {
-                // Condição para execução do estágio
-                expression { params.RUN_TESTS } // Executa se RUN_TESTS for verdadeiro
+                expression { params.RUN_INTEGRATION_TESTS } // Só executa se RUN_INTEGRATION_TESTS for verdadeiro
             }
             steps {
-                echo 'Executando os testes...'
+                echo 'Executando testes de integração...'
+                sh 'mvn test -Dtest=Integration*'
             }
         }
 
-        stage('Deploy') {
-            input {
-                // Solicita confirmação manual para continuar
-                message "Deseja realizar o deploy?"
-                ok "Sim, continuar"
-            }
+        stage('Static Code Analysis') {
             steps {
-                echo 'Fazendo o deploy...'
+                echo 'Executando análise estática de código...'
+                sh 'mvn sonar:sonar' // Exemplo de execução com SonarQube
             }
         }
 
-        stage('Parallel Stages') {
-            parallel {
-                stage('Task 1') {
-                    steps {
-                        echo 'Executando a Tarefa 1'
-                    }
-                }
-                stage('Task 2') {
-                    steps {
-                        echo 'Executando a Tarefa 2'
-                    }
-                }
+        stage('Generate Reports') {
+            steps {
+                echo 'Gerando relatórios de teste...'
+                sh "mkdir -p ${REPORT_DIR}"
+                sh "cp target/surefire-reports/*.xml ${REPORT_DIR}" // Copia relatórios para um diretório específico
             }
         }
 
-        stage('Matrix') {
-            matrix {
-                axes {
-                    axis {
-                        name 'OS'
-                        values 'linux', 'windows' // Variáveis para matriz
-                    }
-                }
-                stages {
-                    stage('Matrix Build') {
-                        steps {
-                            echo "Build em execução no sistema operacional: ${OS}"
-                        }
-                    }
-                }
+        stage('Publish Reports') {
+            steps {
+                echo 'Publicando relatórios...'
+                junit '**/test-reports/*.xml' // Publica os relatórios no Jenkins
             }
         }
     }
 
     post {
-        // Ações pós-execução
         always {
-            echo 'Pipeline finalizado!'
+            echo 'Pipeline de testes concluído!'
+            cleanWs() // Limpa o workspace ao final
         }
         success {
-            echo 'Pipeline executado com sucesso!'
+            echo 'Todos os testes foram executados com sucesso!'
         }
         failure {
-            echo 'O pipeline falhou.'
+            echo 'Falha no pipeline de testes!'
         }
     }
 }
