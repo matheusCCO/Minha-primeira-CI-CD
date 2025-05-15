@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        CYPRESS_RECORD_KEY = credentials('cypress-record-key') // Opcional: para integração com Cypress Dashboard
+        CYPRESS_RECORD_KEY = credentials('cypress-record-key') // Opcional
     }
 
     stages {
@@ -41,8 +41,11 @@ pipeline {
 
     post {
         always {
-            echo 'Limpando o workspace...'
-            cleanWs() // Limpa o workspace ao final
+            script {
+                // Certifique-se de que este bloco está dentro do contexto de um agente/nó
+                echo 'Limpando o workspace...'
+                cleanWs() // Limpa o workspace ao final
+            }
         }
         success {
             echo 'Testes Cypress executados com sucesso!'
