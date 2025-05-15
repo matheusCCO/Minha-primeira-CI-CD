@@ -9,20 +9,6 @@ pipeline {
         string(name: 'TEST_FILE', defaultValue: 'cypress/e2e/example.cy.js', description: 'Caminho para o arquivo de teste Cypress a ser executado.')
     }
 
-    stage('Checkout') {
-        steps {
-            echo 'Clonando o repositório...'
-            checkout([$class: 'GitSCM',
-                  branches: [[name: '*/main']],
-                  doGenerateSubmoduleConfigurations: false,
-                  extensions: [],
-                  userRemoteConfigs: [[
-                      url: 'https://github.com/matheusCCO/Minha-primeira-CI-CD',
-                      credentialsId: 'ID_DA_SUA_CREDENCIAL'
-                    ]]
-                ])
-        }
-    }
 
         stage('Install Dependencies') {
             steps {
