@@ -47,7 +47,7 @@ pipeline {
     post {
         always {
             echo 'Executando ações finais...'
-            cleanWs()
+            //cleanWs()
         }
         success {
             echo 'Testes executados com sucesso!'
