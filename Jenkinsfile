@@ -36,12 +36,12 @@ pipeline {
             }
         }
 
-        stage('Publish Test Results') {
+        /*stage('Publish Test Results') {
             steps {
                 echo 'Publicando resultados dos testes...'
                 junit 'test-results/results.xml'
             }
-        }
+        }*/
     }
 
     post {
