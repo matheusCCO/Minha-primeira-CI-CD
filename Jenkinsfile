@@ -13,9 +13,18 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo 'Clonando o repositório...'
-                checkout scm
+                checkout([$class: 'GitSCM',
+                  branches: [[name: '*/main']],
+                  doGenerateSubmoduleConfigurations: false,
+                  extensions: [],
+                  userRemoteConfigs: [[
+                      url: 'https://github.com/matheusCCO/Minha-primeira-CI-CD',
+                      credentialsId: 'ID_DA_SUA_CREDENCIAL'
+                  ]]
+                ])
             }
         }
+
 
         stage('Install Dependencies') {
             steps {
