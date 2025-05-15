@@ -2,14 +2,21 @@ pipeline {
     agent any
 
     environment {
-        CYPRESS_RECORD_KEY = credentials('cypress-record-key') // Credencial do Cypress Dashboard, se aplicável
+        CYPRESS_RECORD_KEY = credentials('cypress-record-key') // Opcional: para integração com Cypress Dashboard
     }
 
     stages {
-        stage('Preparation') {
+        stage('Checkout') {
             steps {
-                echo 'Preparando o ambiente para Cypress...'
-                sh 'npm install' // Instala dependências do projeto
+                echo 'Clonando o repositório...'
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                echo 'Instalando dependências do projeto...'
+                sh 'npm install' // Instala as dependências, incluindo o Cypress
             }
         }
 
@@ -26,15 +33,15 @@ pipeline {
 
         stage('Publish Test Results') {
             steps {
-                echo 'Publicando resultados dos testes Cypress...'
-                junit 'test-results/results.xml' // Publica os relatórios no Jenkins
+                echo 'Publicando resultados dos testes...'
+                junit 'test-results/results.xml' // Publica o relatório no Jenkins
             }
         }
     }
 
     post {
         always {
-            echo 'Pipeline concluído!'
+            echo 'Limpando o workspace...'
             cleanWs() // Limpa o workspace ao final
         }
         success {
