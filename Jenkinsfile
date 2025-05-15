@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    environment {
+        CYPRESS_RECORD_KEY = credentials('cypress-record-key') // Opcional: para integração com Cypress Dashboard
+    }
+
+    parameters {
+        string(name: 'TEST_FILE', defaultValue: 'cypress/e2e/example.cy.js', description: 'Caminho para o arquivo de teste Cypress a ser executado.')
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -12,23 +20,40 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo 'Instalando dependências do projeto...'
-                bat '''
-                npm install --no-audit --no-fund
-                '''
+                bat 'npm install'
             }
         }
 
-        stage('Run Tests') {
+        stage('Run Selected Cypress Test') {
             steps {
-                echo 'Executando testes...'
-                bat 'npx cypress run'
+                echo "Executando o teste Cypress: ${params.TEST_FILE}..."
+                bat """
+                npx cypress run --browser chrome --headless \
+                    --spec ${params.TEST_FILE} \
+                    --reporter mocha-junit-reporter \
+                    --reporter-options mochaFile=test-results/results.xml
+                """
+            }
+        }
+
+        stage('Publish Test Results') {
+            steps {
+                echo 'Publicando resultados dos testes...'
+                junit 'test-results/results.xml'
             }
         }
     }
 
     post {
         always {
+            echo 'Executando ações finais...'
             cleanWs()
+        }
+        success {
+            echo 'Testes executados com sucesso!'
+        }
+        failure {
+            echo 'Falha ao executar os testes.'
         }
     }
 }
