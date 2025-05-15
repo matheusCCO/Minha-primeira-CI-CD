@@ -6,25 +6,23 @@ pipeline {
     }
 
     parameters {
-        string(name: 'TEST_FILE', defaultValue: 'cypress/e2e/teste_visit.cy.js', description: 'Caminho para o arquivo de teste Cypress a ser executado.')
+        string(name: 'TEST_FILE', defaultValue: 'cypress/e2e/example.cy.js', description: 'Caminho para o arquivo de teste Cypress a ser executado.')
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                echo 'Clonando o repositório...'
-                checkout([$class: 'GitSCM',
+    stage('Checkout') {
+        steps {
+            echo 'Clonando o repositório...'
+            checkout([$class: 'GitSCM',
                   branches: [[name: '*/main']],
                   doGenerateSubmoduleConfigurations: false,
                   extensions: [],
                   userRemoteConfigs: [[
                       url: 'https://github.com/matheusCCO/Minha-primeira-CI-CD',
                       credentialsId: 'ID_DA_SUA_CREDENCIAL'
-                  ]]
+                    ]]
                 ])
-            }
         }
-
+    }
 
         stage('Install Dependencies') {
             steps {
@@ -45,18 +43,18 @@ pipeline {
             }
         }
 
-        /*stage('Publish Test Results') {
+        stage('Publish Test Results') {
             steps {
                 echo 'Publicando resultados dos testes...'
                 junit 'test-results/results.xml'
             }
-        }*/
+        }
     }
 
     post {
         always {
             echo 'Executando ações finais...'
-            //cleanWs()
+            cleanWs()
         }
         success {
             echo 'Testes executados com sucesso!'
