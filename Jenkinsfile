@@ -1,47 +1,114 @@
 pipeline {
-    agent any
+    agent any // Define o agente para executar o pipeline
+
+    environment {
+        // Definição de variáveis de ambiente
+        MY_ENV_VAR = 'HelloWorld'
+    }
+
+    options {
+        // Configurações de opções
+        timeout(time: 30, unit: 'MINUTES') // Timeout de 30 minutos
+        timestamps() // Adiciona timestamps aos logs
+    }
+
     parameters {
-        string(name: 'TEST_FILE', defaultValue: 'cypress/e2e/example.cy.js', description: 'Caminho para o arquivo de teste Cypress a ser executado.')
+        // Definição de parâmetros para o pipeline
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Nome do branch')
+        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Executar testes?')
+    }
+
+    triggers {
+        // Configuração de gatilhos
+        cron('H 4 * * 1-5') // Executa de segunda a sexta às 4h
     }
 
     stages {
-        stage('Install Dependencies') {
+        stage('Preparation') {
             steps {
-                echo 'Instalando dependências do projeto...'
-                sh 'npm install'
+                script {
+                    echo "Pipeline iniciado com a variável: ${MY_ENV_VAR}"
+                }
             }
         }
 
-        stage('Run Selected Cypress Test') {
+        stage('Checkout') {
             steps {
-                echo "Executando o teste Cypress: ${params.TEST_FILE}..."
-                sh """
-                npx cypress run --browser chrome --headless \
-                    --spec ${params.TEST_FILE} \
-                    --reporter mocha-junit-reporter \
-                    --reporter-options mochaFile=test-results/results.xml
-                """
+                checkout scm // Faz o checkout do código-fonte
             }
         }
 
-        stage('Publish Test Results') {
+        stage('Build') {
             steps {
-                echo 'Publicando resultados dos testes...'
-                junit 'test-results/results.xml'
+                echo 'Construindo o projeto...'
+            }
+        }
+
+        stage('Test') {
+            when {
+                // Condição para execução do estágio
+                expression { params.RUN_TESTS } // Executa se RUN_TESTS for verdadeiro
+            }
+            steps {
+                echo 'Executando os testes...'
+            }
+        }
+
+        stage('Deploy') {
+            input {
+                // Solicita confirmação manual para continuar
+                message "Deseja realizar o deploy?"
+                ok "Sim, continuar"
+            }
+            steps {
+                echo 'Fazendo o deploy...'
+            }
+        }
+
+        stage('Parallel Stages') {
+            parallel {
+                stage('Task 1') {
+                    steps {
+                        echo 'Executando a Tarefa 1'
+                    }
+                }
+                stage('Task 2') {
+                    steps {
+                        echo 'Executando a Tarefa 2'
+                    }
+                }
+            }
+        }
+
+        stage('Matrix') {
+            matrix {
+                axes {
+                    axis {
+                        name 'OS'
+                        values 'linux', 'windows' // Variáveis para matriz
+                    }
+                }
+                stages {
+                    stage('Matrix Build') {
+                        steps {
+                            echo "Build em execução no sistema operacional: ${OS}"
+                        }
+                    }
+                }
             }
         }
     }
 
     post {
+        // Ações pós-execução
         always {
-            echo 'Executando ações finais...'
-            cleanWs()
+            echo 'Pipeline finalizado!'
         }
         success {
-            echo 'Testes executados com sucesso!'
+            echo 'Pipeline executado com sucesso!'
         }
         failure {
-            echo 'Falha ao executar os testes.'
+            echo 'O pipeline falhou.'
         }
     }
 }
