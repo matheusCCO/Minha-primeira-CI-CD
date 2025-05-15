@@ -1,23 +1,30 @@
 pipeline {
     agent any
+
     stages {
-        stage('Build') {
+        stage('Install Dependencies') {
             steps {
-                echo 'Construindo o projeto...'
-                bat 'mvn clean package' // Exemplo para projetos Java usando Maven
+                echo 'Instalando dependências...'
+                bat 'npm install'
             }
         }
-        stage('Test') {
+        stage('Run Tests') {
             steps {
                 echo 'Executando testes...'
-                bat 'mvn test'
+                bat 'npm test'
             }
         }
-        stage('Deploy') {
-            steps {
-                echo 'Realizando deploy...'
-                bat 'scp target/*.jar user@server:/deploy' // Ajuste conforme necessário
-            }
+    }
+
+    post {
+        always {
+            echo 'Pipeline concluída.'
+        }
+        success {
+            echo 'Pipeline executada com sucesso!'
+        }
+        failure {
+            echo 'A pipeline falhou.'
         }
     }
 }
