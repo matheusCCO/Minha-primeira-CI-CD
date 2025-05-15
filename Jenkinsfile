@@ -1,59 +1,23 @@
 pipeline {
     agent any
-
-    environment {
-        CYPRESS_RECORD_KEY = credentials('cypress-record-key') // Opcional: para integração com Cypress Dashboard
-    }
-
-    parameters {
-        string(name: 'TEST_FILE', defaultValue: 'cypress/e2e/teste_visit.cy.js', description: 'Caminho para o arquivo de teste Cypress a ser executado.')
-    }
-
     stages {
-        stage('Checkout') {
+        stage('Build') {
             steps {
-                echo 'Clonando o repositório...'
-                checkout scm
+                echo 'Construindo o projeto...'
+                bat 'mvn clean package' // Exemplo para projetos Java usando Maven
             }
         }
-
-        stage('Install Dependencies') {
+        stage('Test') {
             steps {
-                echo 'Instalando dependências do projeto...'
-                bat 'npm install'
+                echo 'Executando testes...'
+                bat 'mvn test'
             }
         }
-
-        stage('Run Selected Cypress Test') {
+        stage('Deploy') {
             steps {
-                echo "Executando o teste Cypress: ${params.TEST_FILE}..."
-                bat """
-                npx cypress run --browser chrome --headless \
-                    --spec ${params.TEST_FILE} \
-                    --reporter mocha-junit-reporter \
-                    --reporter-options mochaFile=test-results/results.xml
-                """
+                echo 'Realizando deploy...'
+                bat 'scp target/*.jar user@server:/deploy' // Ajuste conforme necessário
             }
-        }
-
-        stage('Publish Test Results') {
-            steps {
-                echo 'Publicando resultados dos testes...'
-                junit 'test-results/results.xml'
-            }
-        }
-    }
-
-    post {
-        always {
-            echo 'Executando ações finais...'
-            cleanWs()
-        }
-        success {
-            echo 'Testes executados com sucesso!'
-        }
-        failure {
-            echo 'Falha ao executar os testes.'
         }
     }
 }
