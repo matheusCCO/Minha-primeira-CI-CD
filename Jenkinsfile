@@ -1,10 +1,5 @@
 pipeline {
     agent any
-
-    environment {
-        CYPRESS_RECORD_KEY = credentials('cypress-record-key') // Opcional: para integração com Cypress Dashboard
-    }
-
     parameters {
         string(name: 'TEST_FILE', defaultValue: 'cypress/e2e/example.cy.js', description: 'Caminho para o arquivo de teste Cypress a ser executado.')
     }
