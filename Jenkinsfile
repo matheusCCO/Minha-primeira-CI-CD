@@ -41,11 +41,8 @@ pipeline {
 
     post {
         always {
-            script {
-                // Certifique-se de que este bloco está dentro do contexto de um agente/nó
-                echo 'Limpando o workspace...'
-                cleanWs() // Limpa o workspace ao final
-            }
+            echo 'Executando post actions...'
+            cleanWorkspace()
         }
         success {
             echo 'Testes Cypress executados com sucesso!'
@@ -53,5 +50,13 @@ pipeline {
         failure {
             echo 'Falha ao executar os testes Cypress.'
         }
+    }
+}
+
+def cleanWorkspace() {
+    // Garantindo que o contexto esteja correto
+    node {
+        echo 'Limpando o workspace...'
+        cleanWs() // Limpa o workspace ao final
     }
 }
