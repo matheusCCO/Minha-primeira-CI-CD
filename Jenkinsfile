@@ -2,7 +2,11 @@ pipeline {
     agent any
 
     environment {
-        CYPRESS_RECORD_KEY = credentials('cypress-record-key') // Opcional
+        CYPRESS_RECORD_KEY = credentials('cypress-record-key') // Opcional: para integração com Cypress Dashboard
+    }
+
+    parameters {
+        string(name: 'TEST_FILE', defaultValue: 'cypress/e2e/teste_visit.cy.js', description: 'Caminho para o arquivo de teste Cypress a ser executado.')
     }
 
     stages {
@@ -16,47 +20,40 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo 'Instalando dependências do projeto...'
-                sh 'npm install' // Instala as dependências, incluindo o Cypress
+                sh 'npm install'
             }
         }
 
-        stage('Run Cypress Tests') {
+        stage('Run Selected Cypress Test') {
             steps {
-                echo 'Executando testes Cypress...'
-                sh '''
+                echo "Executando o teste Cypress: ${params.TEST_FILE}..."
+                sh """
                 npx cypress run --browser chrome --headless \
+                    --spec ${params.TEST_FILE} \
                     --reporter mocha-junit-reporter \
                     --reporter-options mochaFile=test-results/results.xml
-                '''
+                """
             }
         }
 
         stage('Publish Test Results') {
             steps {
                 echo 'Publicando resultados dos testes...'
-                junit 'test-results/results.xml' // Publica o relatório no Jenkins
+                junit 'test-results/results.xml'
             }
         }
     }
 
     post {
         always {
-            echo 'Executando post actions...'
-            cleanWorkspace()
+            echo 'Executando ações finais...'
+            cleanWs()
         }
         success {
-            echo 'Testes Cypress executados com sucesso!'
+            echo 'Testes executados com sucesso!'
         }
         failure {
-            echo 'Falha ao executar os testes Cypress.'
+            echo 'Falha ao executar os testes.'
         }
-    }
-}
-
-def cleanWorkspace() {
-    // Garantindo que o contexto esteja correto
-    node {
-        echo 'Limpando o workspace...'
-        cleanWs() // Limpa o workspace ao final
     }
 }
