@@ -9,7 +9,7 @@ pipeline {
         string(name: 'TEST_FILE', defaultValue: 'cypress/e2e/example.cy.js', description: 'Caminho para o arquivo de teste Cypress a ser executado.')
     }
 
-
+    stages {
         stage('Install Dependencies') {
             steps {
                 echo 'Instalando dependências do projeto...'
