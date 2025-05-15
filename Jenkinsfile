@@ -3,7 +3,7 @@ pipeline{
     stages{
         stage('Dependecia'){
             steps{
-                sh 'npm install'
+                bat 'npm install'
             }
         }
     }
