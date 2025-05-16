@@ -1,85 +1,121 @@
 pipeline {
-    agent any
+    agent any // Agente específico para executar a pipeline
 
     environment {
-        NODE_ENV = 'production'  // Variáveis de ambiente
-        CYPRESS_CACHE_FOLDER = 'C:\\Temp\\CypressCache'  // Para evitar problemas de permissão
+        NODE_ENV = 'test' // Variável de ambiente
+        PROJECT_NAME = 'JenkinsNodePipelineExample'
     }
 
     options {
-        timestamps() // Adiciona timestamps aos logs
+        timeout(time: 30, unit: 'MINUTES') // Tempo limite para a execução da pipeline
+        buildDiscarder(logRotator(numToKeepStr: '10')) // Limite de builds mantidos no histórico
     }
 
     parameters {
-        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Nome do branch para build')
+        string(name: 'BRANCH', defaultValue: 'main', description: 'Qual branch será usada?')
+        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Executar os testes?')
     }
 
     triggers {
-        pollSCM('H/5 * * * *') // Verifica mudanças no código a cada 5 minutos
+        cron('H */4 * * *') // Trigger para executar a cada 4 horas
     }
 
     stages {
         stage('Setup') {
             steps {
-                echo 'Configurando o ambiente...'
-                bat 'npm install'
+                echo "Preparando o ambiente para o projeto: ${env.PROJECT_NAME}"
+                echo "Branch escolhida: ${params.BRANCH}"
             }
         }
 
-        stage('Build') {
+        stage('Install Dependencies') {
             steps {
-                echo 'Construindo o projeto...'
-                bat 'npm run build'
+                script {
+                    if (params.RUN_TESTS) {
+                        echo 'Instalando dependências...'
+                        bat 'npm install'
+                    } else {
+                        echo 'Pular a instalação de dependências, pois os testes estão desativados.'
+                    }
+                }
             }
         }
 
-        stage('Testing') {
+        stage('Run Tests') {
+            when {
+                expression { return params.RUN_TESTS } // Executa apenas se RUN_TESTS for verdadeiro
+            }
+            steps {
+                echo 'Executando testes...'
+                bat 'npm test'
+            }
+        }
+
+        stage('Deploy') {
+            input {
+                message "Deploy aprovado?"
+                ok "Continuar com o Deploy"
+            }
+            steps {
+                echo "Realizando deploy do projeto: ${env.PROJECT_NAME}"
+            }
+        }
+
+        stage('Parallel Stages') {
             parallel {
-                stage('Unit Tests') {
+                stage('Linting') {
                     steps {
-                        echo 'Executando testes unitários...'
-                        bat 'npm test'
+                        echo 'Executando análise estática (Lint)...'
+                        bat 'npm run lint'
                     }
                 }
-                stage('Integration Tests') {
+
+                stage('Build') {
                     steps {
-                        echo 'Executando testes de integração...'
-                        bat 'echo "Teste de integração placeholder"'
+                        echo 'Construindo o projeto...'
+                        bat 'npm run build' // Exemplo, ajustar conforme necessário
                     }
                 }
             }
         }
 
-        stage('Browser Testing') {
-            matrix {
-                axes {
-                    axis {
-                        name 'BROWSER'
-                        values 'chrome', 'firefox'
-                    }
-                }
-                stages {
-                    stage('Run Cypress') {
-                        steps {
-                            echo "Testando no navegador: ${BROWSER}"
-                            bat "npx cypress run --browser ${BROWSER}"
+        stage('Matrix') {
+    matrix {
+        axes {
+            axis {
+                name 'BROWSER'
+                values 'chrome', 'firefox', 'edge'
+            }
+        }
+        stages {
+            stage('Test in Browser') {
+                steps {
+                    echo "Executando testes no navegador: ${BROWSER}"
+                    script {
+                        if (BROWSER == 'chrome') {
+                            bat 'npx cypress run --browser chrome'
+                        } else if (BROWSER == 'firefox') {
+                            bat 'npx cypress run --browser firefox'
+                        } else if (BROWSER == 'edge') {
+                            bat 'npx cypress run --browser edge'
                         }
                     }
                 }
             }
         }
     }
+}
+    }
 
     post {
         always {
-            echo 'Pipeline finalizada.'
+            echo 'Pipeline concluída.'
         }
         success {
             echo 'Pipeline executada com sucesso!'
         }
         failure {
-            echo 'Pipeline falhou. Verifique os logs.'
-            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
+            echo 'A pipeline falhou.'
         }
     }
 }
