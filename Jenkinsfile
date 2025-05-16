@@ -1,5 +1,5 @@
 pipeline {
-    agent any // Agente específico para executar a pipeline
+    agent { label 'nodejs-agent' } // Agente específico para executar a pipeline
 
     environment {
         NODE_ENV = 'test' // Variável de ambiente
@@ -66,16 +66,47 @@ pipeline {
                 stage('Linting') {
                     steps {
                         echo 'Executando análise estática (Lint)...'
-                        bat 'npm run lint'
+                        bat 'npm run lint' // Exemplo, ajustar conforme disponível
                     }
                 }
-
                 stage('Build') {
                     steps {
                         echo 'Construindo o projeto...'
                         bat 'npm run build' // Exemplo, ajustar conforme necessário
+                    }
                 }
             }
+        }
+
+        stage('Matrix') {
+            matrix {
+                axes {
+                    axis {
+                        name 'NODE_VERSION'
+                        values '16', '18', '20'
+                    }
+                }
+                stages {
+                    stage('Test on Node Versions') {
+                        steps {
+                            echo "Executando testes com Node.js versão ${NODE_VERSION}"
+                            bat "nvm use ${NODE_VERSION} && npm test"
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline concluída.'
+        }
+        success {
+            echo 'Pipeline executada com sucesso!'
+        }
+        failure {
+            echo 'A pipeline falhou.'
         }
     }
 }
