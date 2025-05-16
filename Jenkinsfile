@@ -29,7 +29,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Construindo o projeto...'
-                bat 'npm run build'
+                bat 'npx babel src --out-dir dist'
             }
         }
 
