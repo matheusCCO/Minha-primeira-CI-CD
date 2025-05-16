@@ -29,7 +29,7 @@ pipeline {
                 stage('Test in Edge') {
                     steps {
                         echo 'Testando no navegador Edge...'
-                        bat 'npx cypress run --browser edge'
+                        bat 'npx cypress run --browser electron'
                     }
                 }
             }
