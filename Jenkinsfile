@@ -74,6 +74,7 @@ pipeline {
                     steps {
                         echo 'Construindo o projeto...'
                         bat 'npm run build' // Exemplo, ajustar conforme necessário
+                }
             }
         }
     }
