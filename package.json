@@ -5,9 +5,13 @@
   "main": "src/index.js",
   "scripts": {
     "test": "mocha",
-    "lint": "eslint src/**/*.js"
+    "lint": "eslint src/**/*.js",
+    "build": "babel src --out-dir dist"
   },
   "devDependencies": {
+    "@babel/cli": "^7.27.2",
+    "@babel/core": "^7.27.1",
+    "@babel/preset-env": "^7.27.2",
     "eslint": "^9.26.0",
     "globals": "^16.1.0",
     "mocha": "^10.2.0"
