@@ -2,68 +2,34 @@ pipeline {
     agent any
 
     environment {
-        NODE_ENV = 'production'  // Variáveis de ambiente
-        CYPRESS_CACHE_FOLDER = 'C:\\Temp\\CypressCache'  // Para evitar problemas de permissão
+        NODE_ENV = 'test' // Configuração de ambiente
+        CYPRESS_CACHE_FOLDER = 'C:\\Temp\\CypressCache' // Cache do Cypress
     }
 
     options {
         timestamps() // Adiciona timestamps aos logs
     }
 
-    parameters {
-        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Nome do branch para build')
-    }
-
-    triggers {
-        pollSCM('H/5 * * * *') // Verifica mudanças no código a cada 5 minutos
-    }
-
     stages {
         stage('Setup') {
             steps {
-                echo 'Configurando o ambiente...'
-                bat 'npm install'
+                echo 'Instalando dependências...'
+                bat 'npm ci'
             }
         }
 
-        stage('Build') {
-            steps {
-                echo 'Construindo o projeto...'
-                bat 'npx babel src --out-dir dist'
-            }
-        }
-
-        stage('Testing') {
+        stage('Testing in Browsers') {
             parallel {
-                stage('Unit Tests') {
+                stage('Test in Chrome') {
                     steps {
-                        echo 'Executando testes unitários...'
-                        bat 'npm test'
+                        echo 'Testando no navegador Chrome...'
+                        bat 'npx cypress run --browser chrome'
                     }
                 }
-                stage('Integration Tests') {
+                stage('Test in Edge') {
                     steps {
-                        echo 'Executando testes de integração...'
-                        bat 'echo "Teste de integração placeholder"'
-                    }
-                }
-            }
-        }
-
-        stage('Browser Testing') {
-            matrix {
-                axes {
-                    axis {
-                        name 'BROWSER'
-                        values 'chrome', 'firefox'
-                    }
-                }
-                stages {
-                    stage('Run Cypress') {
-                        steps {
-                            echo "Testando no navegador: ${BROWSER}"
-                            bat "npx cypress run --browser ${BROWSER}"
-                        }
+                        echo 'Testando no navegador Edge...'
+                        bat 'npx cypress run --browser edge'
                     }
                 }
             }
@@ -75,10 +41,10 @@ pipeline {
             echo 'Pipeline finalizada.'
         }
         success {
-            echo 'Pipeline executada com sucesso!'
+            echo 'Testes executados com sucesso!'
         }
         failure {
-            echo 'Pipeline falhou. Verifique os logs.'
+            echo 'Alguns testes falharam. Verifique os logs.'
             archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
         }
     }
