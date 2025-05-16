@@ -80,23 +80,31 @@ pipeline {
         }
 
         stage('Matrix') {
-            matrix {
-                axes {
-                    axis {
-                        name 'NODE_VERSION'
-                        values '16', '18', '20'
-                    }
-                }
-                stages {
-                    stage('Test on Node Versions') {
-                        steps {
-                            echo "Executando testes com Node.js versão ${NODE_VERSION}"
-                            bat "nvm use ${NODE_VERSION} && npm test"
+    matrix {
+        axes {
+            axis {
+                name 'BROWSER'
+                values 'chrome', 'firefox', 'edge'
+            }
+        }
+        stages {
+            stage('Test in Browser') {
+                steps {
+                    echo "Executando testes no navegador: ${BROWSER}"
+                    script {
+                        if (BROWSER == 'chrome') {
+                            bat 'npx cypress run --browser chrome'
+                        } else if (BROWSER == 'firefox') {
+                            bat 'npx cypress run --browser firefox'
+                        } else if (BROWSER == 'edge') {
+                            bat 'npx cypress run --browser edge'
                         }
                     }
                 }
             }
         }
+    }
+}
     }
 
     post {
