@@ -66,9 +66,10 @@ pipeline {
                 stage('Linting') {
                     steps {
                         echo 'Executando análise estática (Lint)...'
-                        bat 'npm run lint' // Exemplo, ajustar conforme disponível
+                        bat 'npm run lint'
                     }
                 }
+
                 stage('Build') {
                     steps {
                         echo 'Construindo o projeto...'

@@ -4,10 +4,12 @@
   "description": "Example Node.js project for Jenkins pipeline",
   "main": "src/index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "lint": "eslint src/**/*.js"
   },
-  "dependencies": {},
   "devDependencies": {
+    "eslint": "^9.26.0",
+    "globals": "^16.1.0",
     "mocha": "^10.2.0"
   }
 }
