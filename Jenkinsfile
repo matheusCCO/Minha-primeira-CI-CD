@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'nodejs-agent' } // Agente específico para executar a pipeline
+    agent any // Agente específico para executar a pipeline
 
     environment {
         NODE_ENV = 'test' // Variável de ambiente
