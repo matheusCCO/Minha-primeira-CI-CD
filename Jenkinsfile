@@ -74,48 +74,7 @@ pipeline {
                     steps {
                         echo 'Construindo o projeto...'
                         bat 'npm run build' // Exemplo, ajustar conforme necessário
-                    }
-                }
             }
-        }
-
-        stage('Matrix') {
-    matrix {
-        axes {
-            axis {
-                name 'BROWSER'
-                values 'chrome', 'firefox', 'edge'
-            }
-        }
-        stages {
-            stage('Test in Browser') {
-                steps {
-                    echo "Executando testes no navegador: ${BROWSER}"
-                    script {
-                        if (BROWSER == 'chrome') {
-                            bat 'npx cypress run --browser chrome'
-                        } else if (BROWSER == 'firefox') {
-                            bat 'npx cypress run --browser firefox'
-                        } else if (BROWSER == 'edge') {
-                            bat 'npx cypress run --browser edge'
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-    }
-
-    post {
-        always {
-            echo 'Pipeline concluída.'
-        }
-        success {
-            echo 'Pipeline executada com sucesso!'
-        }
-        failure {
-            echo 'A pipeline falhou.'
         }
     }
 }
