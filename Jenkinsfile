@@ -30,19 +30,21 @@ pipeline {
 
         stage('Testing in Browsers') {
             when {
-                expression { return params.RUN_TESTS } // Condição: Executar apenas se RUN_TESTS for verdadeiro
+                expression { return params.RUN_TESTS } // Executa somente se RUN_TESTS for verdadeiro
             }
-            parallel {
-                stage('Test in Chrome') {
-                    steps {
-                        echo 'Testando no navegador Chrome...'
-                        bat 'npx cypress run --browser chrome'
+            matrix {
+                axes {
+                    axis {
+                        name 'BROWSER'
+                        values 'chrome', 'electron' // Testes nos navegadores Chrome e Electron
                     }
                 }
-                stage('Test in Edge') {
-                    steps {
-                        echo 'Testando no navegador Edge...'
-                        bat 'npx cypress run --browser electron'
+                stages {
+                    stage('Run Cypress Tests') {
+                        steps {
+                            echo "Executando testes no navegador: ${BROWSER}"
+                            bat "npx cypress run --browser ${BROWSER}"
+                        }
                     }
                 }
             }
@@ -55,6 +57,19 @@ pipeline {
             }
             steps {
                 echo 'Aprovação recebida. Continuando o pipeline...'
+            }
+        }
+
+        stage('Deploy with Credentials') {
+            steps {
+                script {
+                    // Usando credenciais armazenadas no Jenkins
+                    withCredentials([string(credentialsId: 'deploy-key', variable: 'DEPLOY_KEY')]) {
+                        echo "Usando a chave de deploy: ${DEPLOY_KEY}"
+                        // Exemplo: executar comando de deploy com a chave
+                        bat "echo 'Simulação de deploy usando a chave: ${DEPLOY_KEY}'"
+                    }
+                }
             }
         }
     }
