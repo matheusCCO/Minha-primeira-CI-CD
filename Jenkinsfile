@@ -64,10 +64,10 @@ pipeline {
             steps {
                 script {
                     // Usando credenciais armazenadas no Jenkins
-                    withCredentials([string(credentialsId: 'deploy-key', variable: 'DEPLOY_KEY')]) {
-                        echo "Usando a chave de deploy: ${DEPLOY_KEY}"
+                    withCredentials([usernamePassword(credentialsId: 'deploy-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        echo "Usando usuário: ${USERNAME}"
                         // Exemplo: executar comando de deploy com a chave
-                        bat "echo 'Simulação de deploy usando a chave: ${DEPLOY_KEY}'"
+                        bat "echo 'Simulação de deploy com usuário: ${USERNAME} e senha: ${PASSWORD}'"
                     }
                 }
             }
