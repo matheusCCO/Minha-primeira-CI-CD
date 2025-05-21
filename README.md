@@ -10,32 +10,20 @@ Este repositório contém uma pipeline para automatizar testes usando **Cypress*
 
 ### **1. Integrar o Jenkins com o GitHub**
 
-1. **Faça um Fork ou Clone do Repositório**:
+1. **Configurar a Pipeline com o SCM**:
 
-   - Se ainda não possui o código, faça um **fork** do repositório original no GitHub.
-   - Ou clone o repositório diretamente para o seu próprio repositório GitHub.
+   - No painel do Jenkins, crie ou edite um job do tipo **Pipeline**.
+   - Em "Definição", selecione a opção **Pipeline script from SCM**.
+   - Configure o SCM como **Git** e preencha os campos:
 
-2. **Configure o GitHub Webhook**:
+     - **Repository URL**: Informe a URL do repositório GitHub (ex.: `https://github.com/seu-usuario/seu-repositorio.git`).
+     - **Branches to build**: Informe o branch que deseja utilizar (ex.: `main`).
 
-   - No GitHub, acesse o repositório e vá em **Settings** → **Webhooks**.
-   - Clique em **Add webhook** e preencha os campos:
+   - Caso necessário, configure credenciais para acesso ao repositório, selecionando-as no campo **Credentials**.
 
-     - **Payload URL**: `http://<JENKINS_URL>/github-webhook/`
-     - **Content type**: `application/json`
-     - **Secret**: (opcional, mas pode ser usado para autenticação).
-     - **Events**: Escolha "Just the push event".
+2. **Salve e Execute**:
 
-3. **Configurar o Job no Jenkins**:
-
-   - Na configuração do job, ative a opção **GitHub hook trigger for GITScm polling**.
-   - Certifique-se de que o repositório Git está configurado corretamente na seção "Source Code Management".
-
-4. **Configurar Credenciais para o GitHub**:
-
-   - No Jenkins, adicione uma credencial de acesso ao GitHub (token pessoal ou SSH):
-
-     - Tipo: **Personal Access Token** ou **SSH Username with Private Key**.
-     - Use o ID configurado ao adicionar o repositório na pipeline.
+   - Clique em **Salvar** e execute o job para verificar se a pipeline é carregada corretamente a partir do repositório.
 
 ---
 
